@@ -13,6 +13,8 @@ build: $(TARGETS) ## Creates all the pb.go files
 clean: ## Remove all the .pb.go
 	@rm *.pb.go 2> /dev/null || true
 
+task-with-dash: ## This is a task with dash
+
 
 patatas:
 	@echo Muy ricas

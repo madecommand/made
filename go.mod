@@ -12,6 +12,7 @@ require (
 	github.com/mrtazz/checkmake v0.0.0-20200226205106-1383019b4b84
 	github.com/olekukonko/tablewriter v0.0.4
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/posener/complete v1.2.3 // indirect
 	github.com/tcnksm/ghr v0.13.0 // indirect
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
