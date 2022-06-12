@@ -1,0 +1,27 @@
+
+NAMES=Guillermo Sandra Ada
+
+>each: 
+    for current in $1; do
+    $TASK
+    done
+
+>ssh:
+    cat | ssh $1 <<-EOF
+    $TASK
+    EOF
+
+>ssh:
+    scp $TASK_FILE
+
+say_hi:
+^each $NAMES
+    echo $NAME
+
+
+
+update_motd:
+^each $HOSTS 
+^ssh $current
+^each $NAMES
+    echo Hello $current >> /etc/motd
