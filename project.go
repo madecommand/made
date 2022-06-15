@@ -11,18 +11,11 @@ type File struct {
 	Tasks []*Task
 }
 
-type Scripter interface {
-	AddLineToScript(string)
-}
-
 type Task struct {
+	File    *File
 	Name    string
 	Comment string
 	Script  []string
-}
-
-func (t *Task) AddLineToScript(line string) {
-	t.Script = append(t.Script, line)
 }
 
 func (p *Project) FindTask(name string) (*Task, *File) {
