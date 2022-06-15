@@ -1,30 +1,31 @@
 package main
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
-func (p *Project) Build(tasks []string) (string, error) {
+func (p *Project) BuildScript(tasks []*Task) (string, error) {
 
-	out := "#!/bin/sh\n"
+	header := "#!/bin/sh\n"
 
-	for _, taskName := range tasks {
+	script := ""
+	env := ""
 
-		for _, file := range p.Files {
-			for _, task := range file.Tasks {
-				if task.Name == taskName {
-
-					if len(task.Filters) > 0 {
-
-						for 
-
-					}
-
-					out += strings.Join(task.Script, "\n")
-					out += "\n"
-
-				}
-			}
+	//Set env
+	for _, f := range p.Files {
+		for k, v := range f.Vars {
+			env += fmt.Sprintf("%s=%s\n", k, v)
 		}
 	}
+
+	for _, t := range tasks {
+		script += fmt.Sprintf("# %s\n", t.Name)
+		script += strings.Join(t.Script, "\n")
+		script += "\n"
+	}
+
+	out := strings.Join([]string{header, env, script}, "\n")
 
 	return out, nil
 

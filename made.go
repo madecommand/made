@@ -2,82 +2,102 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"log"
 	"strings"
 
 	"os"
-	"os/exec"
 
 	"github.com/fatih/color"
 )
 
-func Run(t *Task) {
-	f, err := os.CreateTemp("", "made")
-	if err != nil {
-		panic(err)
-	}
-	defer os.Remove(f.Name()) // clean up
-	_, err = f.Write([]byte(strings.Join(t.Script, "\n")))
-	if err != nil {
-		panic(err)
-	}
-
-	err = f.Close()
-	if err != nil {
-		panic(err)
-	}
-
-	cmd := exec.Command("/bin/bash", f.Name())
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Run()
-
-}
-
 func main() {
 
-	data, err := ioutil.ReadFile("Madefile")
+	wd, err := os.Getwd()
 	if err != nil {
-		panic("Can't read madefile")
+		log.Fatal("can't get current directory", err)
 	}
-	file := ParseString(string(data))
+	p, err := LoadProject(wd)
+	if err != nil {
+		log.Fatal("can't load the project", err)
+	}
 
 	if len(os.Args) <= 1 {
-		printHelp(file)
+		printTasks(p)
 	}
 
+	show := false
+	tasks := []*Task{}
 	for _, arg := range os.Args[1:] {
-		for _, t := range file.Tasks {
-			if t.Name == arg {
-				Run(t)
+		switch arg {
+		case "--show", "-s":
+			show = true
+		case "-h", "--help":
+			printHelp()
+			return
+		case "-t", "--tasks":
+			printTasks(p)
+			return
+		default:
+			if strings.HasPrefix(arg, "-") {
+				log.Fatalf("option %s not recognized", arg)
 			}
+
+			t, _ := p.FindTask(arg)
+			if t == nil {
+				log.Fatalf("task %q not found", arg)
+			}
+			tasks = append(tasks, t)
+		}
+	}
+
+	if show {
+		script, err := p.BuildScript(tasks)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(script)
+	} else {
+		err = p.Run(tasks)
+		if err != nil {
+			log.Fatal(err)
 		}
 	}
 
 }
 
-func printHelp(file *File) {
-	if len(file.Tasks) == 0 {
-		color.Yellow("There are not tasks defined in your Madefile")
-		return
-	}
+func printHelp() {
+	fmt.Println(`made [OPTIONS] task
+	
+OPTIONS:
+	--show -s    Show the generated script
+	--help -h    Show the help
+	--tasks -t   List the current tasks`)
+}
 
-	var maxTaskNameSize int
-	for _, t := range file.Tasks {
-		if len(t.Name) > maxTaskNameSize {
-			maxTaskNameSize = len(t.Name)
+func printTasks(p *Project) {
+	for _, f := range p.Files {
+		if len(f.Tasks) == 0 {
+			color.Yellow("There are not tasks defined in your Madefile")
+			continue
 		}
-	}
+		color.Blue(f.Path)
 
-	taskColor := color.New(color.Bold, color.FgHiGreen)
-	commentColor := color.New(color.FgBlue)
-
-	for _, task := range file.Tasks {
-		taskColor.Print(task.Name)
-		for i := 0; i < maxTaskNameSize-len(task.Name); i++ {
-			fmt.Print(" ")
+		var maxTaskNameSize int
+		for _, t := range f.Tasks {
+			if len(t.Name) > maxTaskNameSize {
+				maxTaskNameSize = len(t.Name)
+			}
 		}
-		commentColor.Println(task.Comment)
+
+		taskColor := color.New(color.Bold, color.FgHiGreen)
+		commentColor := color.New(color.FgBlue)
+
+		for _, task := range f.Tasks {
+			taskColor.Print(task.Name + " ")
+			for i := 0; i < maxTaskNameSize-len(task.Name); i++ {
+				fmt.Print(" ")
+			}
+			commentColor.Println(task.Comment)
+		}
 	}
 }

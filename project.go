@@ -6,40 +6,33 @@ type Project struct {
 }
 
 type File struct {
-	Name    string
-	Vars    map[string]string
-	Filters []*Filter
-	Tasks   []*Task
-
-	lastTask         *Task
-	lastTaskOrFilter Scripter
+	Path  string
+	Vars  map[string]string
+	Tasks []*Task
 }
 
 type Scripter interface {
 	AddLineToScript(string)
 }
 
-type Filter struct {
-	Name   string
-	Script []string
-}
-
-func (f *Filter) AddLineToScript(line string) {
-	f.Script = append(f.Script, line)
-}
-
 type Task struct {
 	Name    string
 	Comment string
 	Script  []string
-	Filters []*TaskFilter
 }
 
 func (t *Task) AddLineToScript(line string) {
 	t.Script = append(t.Script, line)
 }
 
-type TaskFilter struct {
-	Name string
-	Args []string
+func (p *Project) FindTask(name string) (*Task, *File) {
+	for _, f := range p.Files {
+		for _, t := range f.Tasks {
+			if t.Name == name {
+				return t, f
+			}
+		}
+	}
+	return nil, nil
+
 }

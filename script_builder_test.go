@@ -16,10 +16,10 @@ func TestProjectBuild(t *testing.T) {
 func TestProjectBuild_Task(t *testing.T) {
 	p := &Project{
 		Files: []*File{
-			&File{
-				Name: "madefile",
+			{
+				Path: "madefile",
 				Tasks: []*Task{
-					&Task{Name: "say_hi", Script: []string{"echo hi"}},
+					{Name: "say_hi", Script: []string{"echo hi"}},
 				},
 			},
 		},
@@ -39,20 +39,13 @@ func TestProjectBuild_Task(t *testing.T) {
 func TestProjectBuild_Filter(t *testing.T) {
 	p := &Project{
 		Files: []*File{
-			&File{
-				Name: "madefile",
-				Filters: []*Filter{
-					&Filter{Name: "strict", Script: []string{"set -eux"}},
-				},
+			{
+				Path: "madefile",
 				Tasks: []*Task{
-					&Task{
+					{
 						Name:   "say_hi",
 						Script: []string{"echo hi"},
-						Filters: []*TaskFilter{
-							&TaskFilter{
-								Name: "strict",
-							},
-						}},
+					},
 				},
 			},
 		},
