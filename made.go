@@ -80,7 +80,11 @@ func printTasks(p *Project) {
 			color.Yellow("There are not tasks defined in your Madefile")
 			continue
 		}
-		color.Blue(f.Path)
+
+		if len(p.Files) > 1 {
+			wd, _ := os.Getwd()
+			color.Blue(f.Path[len(wd)+1:])
+		}
 
 		var maxTaskNameSize int
 		for _, t := range f.Tasks {

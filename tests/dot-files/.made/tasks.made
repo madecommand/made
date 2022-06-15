@@ -1,0 +1,6 @@
+
+say_hi:
+    echo "I am tasks.made"
+
+say_ho:
+    echo "I am tasks.made ho"
