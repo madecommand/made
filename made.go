@@ -11,6 +11,8 @@ import (
 )
 
 func main() {
+	log.SetOutput(os.Stderr)
+	log.SetFlags(log.Lshortfile)
 
 	wd, err := os.Getwd()
 	if err != nil {
@@ -23,6 +25,7 @@ func main() {
 
 	if len(os.Args) <= 1 {
 		printTasks(p)
+		return
 	}
 
 	show := false

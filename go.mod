@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/adrg/xdg v0.4.0
 	github.com/fatih/color v1.13.0
+	github.com/stevenle/topsort v0.2.0
 )
 
 require (

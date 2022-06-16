@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"strings"
+)
+
 type Project struct {
 	Dir   string
 	Files []*File
@@ -16,6 +21,14 @@ type Task struct {
 	Name    string
 	Comment string
 	Script  []string
+	Deps    []string
+}
+
+func (t *Task) ScriptString() string {
+	s := fmt.Sprintf("# %s\n", t.Name)
+	s += strings.Join(t.Script, "\n")
+	s += "\n"
+	return s
 }
 
 func (p *Project) FindTask(name string) (*Task, *File) {

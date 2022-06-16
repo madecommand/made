@@ -1,0 +1,26 @@
+
+
+read:
+    read name
+
+prompt:
+    echo Hello 
+
+salute:
+    echo $name    
+
+
+main: read prompt salute
+a: 
+    echo "hi"
+
+b: a
+    echo "bye"
+
+name:
+
+c: d
+    echo c
+
+d: c
+    echo d

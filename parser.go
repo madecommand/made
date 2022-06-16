@@ -74,10 +74,14 @@ func (p *Parser) parseTaskDefinition(task, rest string) {
 	p.Tasks = append(p.Tasks, t)
 	p.lastTask = t
 
+	deps := rest
+
 	if index := strings.Index(rest, "##"); index > -1 {
+		deps = deps[:index]
 		t.Comment = strings.Trim(rest[index+2:], " \t\r\n")
 	}
 
+	t.Deps = strings.Fields(deps)
 }
 
 func (p *Parser) parseError(err string, line string) {
@@ -89,7 +93,7 @@ func (p *Parser) parseLetterLine(line string) {
 		if unicode.IsLetter(r) || unicode.IsNumber(r) || r == '_' || r == '-' {
 			continue
 		} else if r == ':' {
-			p.parseTaskDefinition(line[:i], line[i:])
+			p.parseTaskDefinition(line[:i], line[i+1:])
 			break
 		} else if r == '=' {
 			p.Vars[line[:i]] = strings.Trim(line[i+1:], " ")
