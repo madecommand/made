@@ -86,9 +86,12 @@ func (p *Parser) parseTaskDefinition(task, rest string) {
 
 	deps := rest
 
-	if index := strings.Index(rest, "##"); index > -1 {
+	if index := strings.Index(rest, "#"); index > -1 {
 		deps = deps[:index]
-		t.Comment = strings.Trim(rest[index+2:], " \t\r\n")
+		comment := strings.Trim(rest[index+2:], " \t\r\n")
+		if comment != "" {
+			t.Comment = comment
+		}
 	}
 
 	t.Deps = strings.Fields(deps)
