@@ -10,10 +10,24 @@ type Project struct {
 	Files []*File
 }
 
+type Var struct {
+	Key, Value string
+}
+
 type File struct {
 	Path  string
-	Vars  map[string]string
+	Vars  []Var
 	Tasks []*Task
+}
+
+func (f *File) GetVar(name string) (string, error) {
+	for _, v := range f.Vars {
+		if v.Key == name {
+			return v.Value, nil
+		}
+	}
+	return "", fmt.Errorf("Var not found")
+
 }
 
 type Task struct {

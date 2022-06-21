@@ -17,8 +17,8 @@ task_is-yes: ## Comment
 	}
 
 	// Vars
-	val, ok := file.Vars["ENV"]
-	if !ok {
+	val, err := file.GetVar("ENV")
+	if err != nil {
 		t.Error("ENV was not defined")
 	} else if val != "production" {
 		t.Error("ENV was not production. Was ", val)
