@@ -91,6 +91,9 @@ func printTasks(p *Project) {
 
 		var maxTaskNameSize int
 		for _, t := range f.Tasks {
+			if t.Comment == "" {
+				continue
+			}
 			if len(t.Name) > maxTaskNameSize {
 				maxTaskNameSize = len(t.Name)
 			}
@@ -99,12 +102,15 @@ func printTasks(p *Project) {
 		taskColor := color.New(color.Bold, color.FgHiGreen)
 		commentColor := color.New(color.FgBlue)
 
-		for _, task := range f.Tasks {
-			taskColor.Print(task.Name + " ")
-			for i := 0; i < maxTaskNameSize-len(task.Name); i++ {
+		for _, t := range f.Tasks {
+			if t.Comment == "" {
+				continue
+			}
+			taskColor.Print(t.Name + " ")
+			for i := 0; i < maxTaskNameSize-len(t.Name); i++ {
 				fmt.Print(" ")
 			}
-			commentColor.Println(task.Comment)
+			commentColor.Println(t.Comment)
 		}
 	}
 }
