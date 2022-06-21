@@ -10,7 +10,7 @@ func TestParser(t *testing.T) {
 ENV= production   
 
   
-task_is-yes: ## Comment   
+task_is-yes: # Comment   
 	echo $ENV`)
 	if err != nil {
 		t.Fatal(err)
