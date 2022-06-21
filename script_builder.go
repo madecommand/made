@@ -114,8 +114,8 @@ func (sb *ScriptBuilder) genEnv() (string, error) {
 	env := ""
 	//Set env
 	for _, f := range sb.p.Files {
-		for k, v := range f.Vars {
-			env += fmt.Sprintf("%s=%s\n", k, v)
+		for _, v := range f.Vars {
+			env += fmt.Sprintf("%s=%s\n", v.Key, v.Value)
 		}
 	}
 

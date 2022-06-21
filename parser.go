@@ -9,14 +9,24 @@ import (
 
 type Parser struct {
 	Tasks    []*Task
-	Vars     map[string]string
+	Vars     []Var
 	lastTask *Task
+}
+
+func (p *Parser) GetVar(name string) (string, error) {
+	for _, v := range p.Vars {
+		if v.Key == name {
+			return v.Value, nil
+		}
+	}
+	return "", fmt.Errorf("Var not found")
+
 }
 
 func ParseString(madefile string) (*Parser, error) {
 	p := &Parser{
 		Tasks: make([]*Task, 0),
-		Vars:  make(map[string]string),
+		Vars:  make([]Var, 0),
 	}
 
 	err := p.parse(madefile)
@@ -96,7 +106,7 @@ func (p *Parser) parseLetterLine(line string) {
 			p.parseTaskDefinition(line[:i], line[i+1:])
 			break
 		} else if r == '=' {
-			p.Vars[line[:i]] = strings.Trim(line[i+1:], " ")
+			p.Vars = append(p.Vars, Var{line[:i], strings.Trim(line[i+1:], " ")})
 			break
 		} else {
 			p.parseError("Expecting a task defition", line)
