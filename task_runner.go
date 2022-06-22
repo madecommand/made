@@ -5,7 +5,7 @@ import (
 	"os/exec"
 )
 
-func (p *Project) Run(tasks []*Task) error {
+func (p *Project) Run(tasks []*Task, args []string) error {
 	f, err := os.CreateTemp("", "made")
 	if err != nil {
 		return err
@@ -27,7 +27,9 @@ func (p *Project) Run(tasks []*Task) error {
 		panic(err)
 	}
 
-	cmd := exec.Command("/bin/bash", f.Name())
+	args = append([]string{f.Name()}, args...)
+
+	cmd := exec.Command("/bin/sh", args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
