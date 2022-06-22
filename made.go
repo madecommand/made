@@ -24,7 +24,7 @@ func main() {
 	}
 
 	if len(os.Args) <= 1 {
-		printTasks(p)
+		printTasks(p, false)
 		return
 	}
 
@@ -34,11 +34,13 @@ func main() {
 		switch arg {
 		case "--show", "-s":
 			show = true
+		case "--global", "-g":
+			printTasks(p, true)
 		case "-h", "--help":
 			printHelp()
 			return
 		case "-t", "--tasks":
-			printTasks(p)
+			printTasks(p, false)
 			return
 		default:
 			if strings.HasPrefix(arg, "-") {
@@ -77,20 +79,49 @@ OPTIONS:
 	--tasks -t   List the current tasks`)
 }
 
-func printTasks(p *Project) {
+func printTasks(p *Project, showGlobal bool) {
+
+	tasksToDisplay := make(map[*File][]*Task)
+
 	for _, f := range p.Files {
-		if len(f.Tasks) == 0 {
-			color.Yellow("There are not tasks defined in your Madefile")
-			continue
-		}
-
-		if len(p.Files) > 1 {
-			wd, _ := os.Getwd()
-			color.Blue(f.Path[len(wd)+1:])
-		}
-
-		var maxTaskNameSize int
 		for _, t := range f.Tasks {
+			if t.Global == showGlobal {
+				ts, ok := tasksToDisplay[f]
+				if !ok {
+					ts = make([]*Task, 0)
+				}
+				tasksToDisplay[f] = append(ts, t)
+			}
+		}
+	}
+
+	if len(tasksToDisplay) == 0 {
+		color.Yellow("There are not tasks defined")
+		color.Blue("Create some in Madefile or inside .made/my_tasks.made")
+		return
+	}
+
+	showFilePrefix := showGlobal
+	if len(tasksToDisplay) > 1 {
+		showFilePrefix = true
+	}
+
+	for f, tasks := range tasksToDisplay {
+		if showFilePrefix || showGlobal {
+			if showGlobal {
+				home, err := os.UserHomeDir()
+				if err != nil {
+					color.HiMagenta(f.Path)
+				} else {
+					color.HiMagenta("~/" + f.Path[len(home)+1:])
+				}
+			} else {
+				wd, _ := os.Getwd()
+				color.HiMagenta(f.Path[len(wd)+1:])
+			}
+		}
+		var maxTaskNameSize int
+		for _, t := range tasks {
 			if t.Comment == "" {
 				continue
 			}
@@ -98,11 +129,10 @@ func printTasks(p *Project) {
 				maxTaskNameSize = len(t.Name)
 			}
 		}
-
 		taskColor := color.New(color.Bold, color.FgHiGreen)
 		commentColor := color.New(color.FgBlue)
 
-		for _, t := range f.Tasks {
+		for _, t := range tasks {
 			if t.Comment == "" {
 				continue
 			}
@@ -113,4 +143,5 @@ func printTasks(p *Project) {
 			commentColor.Println(t.Comment)
 		}
 	}
+
 }

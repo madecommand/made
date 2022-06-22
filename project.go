@@ -36,6 +36,7 @@ type Task struct {
 	Comment string
 	Script  []string
 	Deps    []string
+	Global  bool
 }
 
 func (t *Task) ScriptString() string {
