@@ -11,7 +11,7 @@ func TestLoader(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(p.Files) >= 2 { // There could be global tasks 
+	if len(p.Files) < 2 { // There could be global tasks
 		t.Fatal("missing files", len(p.Files))
 	}
 

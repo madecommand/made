@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"path"
 	"strings"
 )
 
@@ -47,12 +48,29 @@ func (t *Task) ScriptString() string {
 }
 
 func (p *Project) FindTask(name string) (*Task, *File) {
+	var globalTask, madeTask, dotMadeTask *Task
 	for _, f := range p.Files {
 		for _, t := range f.Tasks {
 			if t.Name == name {
-				return t, f
+				switch {
+				case path.Base(f.Path) == "Madefile":
+					madeTask = t
+				case t.Global:
+					globalTask = t
+				default:
+					dotMadeTask = t
+				}
 			}
 		}
+	}
+	if madeTask != nil {
+		return madeTask, madeTask.File
+	}
+	if dotMadeTask != nil {
+		return dotMadeTask, dotMadeTask.File
+	}
+	if globalTask != nil {
+		return globalTask, globalTask.File
 	}
 	return nil, nil
 
