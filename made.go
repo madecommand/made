@@ -30,8 +30,13 @@ func main() {
 
 	show := false
 	tasks := []*Task{}
-	for _, arg := range os.Args[1:] {
+	args := []string{}
+	FOR:
+	for i, arg := range os.Args[1:] {
 		switch arg {
+		case "--":
+			args = os.Args[2+i:]
+			break FOR
 		case "--show", "-s":
 			show = true
 		case "--global", "-g":
@@ -62,7 +67,7 @@ func main() {
 		}
 		fmt.Println(script)
 	} else {
-		err = p.Run(tasks)
+		err = p.Run(tasks, args)
 		if err != nil {
 			log.Fatal(err)
 		}
