@@ -16,9 +16,8 @@ func (p *Project) BuildScript(tasks []*Task) (string, error) {
 }
 
 type ScriptBuilder struct {
-	tasks         []*Task
-	p             *Project
-	circularCheck map[string]struct{}
+	tasks []*Task
+	p     *Project
 }
 
 func (sb *ScriptBuilder) taskOrder() ([]string, error) {

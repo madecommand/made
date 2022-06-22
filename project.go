@@ -40,7 +40,18 @@ type Task struct {
 
 func (t *Task) ScriptString() string {
 	s := fmt.Sprintf("# %s\n", t.Name)
-	s += strings.Join(t.Script, "\n")
+	for _, line := range t.Script {
+		if strings.Index(line, "  ") == 0 {
+			s += line[2:] + "\n"
+			continue
+		}
+		if strings.Index(line, "\t") == 0 {
+			s += line[1:] + "\n"
+			continue
+		}
+		s += line + "\n"
+	}
+
 	s += "\n"
 	return s
 }
