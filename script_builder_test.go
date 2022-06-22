@@ -31,7 +31,7 @@ func TestProjectBuild_Task(t *testing.T) {
 			{
 				Path: "madefile",
 				Tasks: []*Task{
-					{Name: "say_hi", Script: []string{"echo hi"}},
+					{Name: "say_hi", Script: []string{"  echo hi", "\thola"}},
 				},
 			},
 		},
@@ -42,7 +42,7 @@ func TestProjectBuild_Task(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if out != "#!/bin/sh\n\n# say_hi\necho hi\n" {
+	if out != "#!/bin/sh\n\n# say_hi\necho hi\nhola\n\n" {
 		t.Fatalf("Expected out to be different than %q", out)
 	}
 
