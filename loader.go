@@ -2,11 +2,10 @@ package main
 
 import (
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"strings"
-
-	"github.com/adrg/xdg"
 )
 
 func LoadProject(dir string) (*Project, error) {
@@ -16,10 +15,9 @@ func LoadProject(dir string) (*Project, error) {
 	}
 
 	f, err := loadFile(path.Join(dir, "Madefile"))
-	if err != nil {
-		return nil, err
+	if err == nil {
+		prj.Files = []*File{f}
 	}
-	prj.Files = []*File{f}
 
 	// Load .made files
 	files, err := loadDirectory(path.Join(dir, ".made"))
@@ -29,9 +27,19 @@ func LoadProject(dir string) (*Project, error) {
 	prj.Files = append(prj.Files, files...)
 
 	// Load ~/.made files
-	files, err = loadDirectory(path.Join(xdg.DataHome, "made"))
+	config, err := os.UserConfigDir()
 	if err != nil {
-		return nil, err
+		log.Println("Can't load global tasks:", err)
+	} else {
+		files, err = loadDirectory(path.Join(config, "made"))
+		if err != nil {
+			return nil, err
+		}
+		for _, f := range files {
+			for _, t := range f.Tasks {
+				t.Global = true
+			}
+		}
 	}
 
 	prj.Files = append(prj.Files, files...)
