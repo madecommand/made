@@ -18,7 +18,13 @@ func main() {
 	if err != nil {
 		log.Fatal("can't get current directory", err)
 	}
-	p, err := LoadProject(wd)
+
+	dir, err := FindProjectDir(wd)
+	if err != nil {
+		log.Fatal("No Madefile or .made directory found")
+	}
+
+	p, err := LoadProject(dir)
 	if err != nil {
 		log.Fatal("can't load the project", err)
 	}

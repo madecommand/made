@@ -1,12 +1,51 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 )
+
+// FindProjectDir scans current directory and goes up until find a project
+func FindProjectDir(dir string) (string, error) {
+	// Convert to abs
+	if !path.IsAbs(dir) {
+		absDir, err := filepath.Abs(dir)
+		if err != nil {
+			return "", fmt.Errorf("project not found: %w", err)
+		}
+		dir = absDir
+	}
+
+	if isDir(dir, ".made") || isFile(dir, "Madefile") {
+		return dir, nil
+	}
+
+	if dir == "/" {
+		return "", fmt.Errorf("project not found")
+	}
+
+	return FindProjectDir(filepath.Dir(dir))
+
+}
+
+func isDir(paths ...string) bool {
+	p := path.Join(paths...)
+
+	dir, err := os.Stat(p)
+	return err == nil && dir.IsDir()
+}
+
+func isFile(paths ...string) bool {
+	p := path.Join(paths...)
+
+	file, err := os.Stat(p)
+	return err == nil && !file.IsDir()
+}
 
 func LoadProject(dir string) (*Project, error) {
 
