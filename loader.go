@@ -64,6 +64,9 @@ func loadDirectory(dir string) ([]*File, error) {
 
 	files := []*File{}
 	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
 		if strings.HasSuffix(entry.Name(), ".made") {
 			f, err := loadFile(path.Join(dir, entry.Name()))
 			if err != nil {
