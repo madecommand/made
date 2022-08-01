@@ -6,33 +6,22 @@ import (
 )
 
 func TestParser(t *testing.T) {
-	file := ParseString(`
+	file, err := ParseString(`
 ENV= production   
->strict:
-  set -$1
-  echo $SCRIPT
-task_is-yes: ## Comment   
-^strict eux
+
+  
+task_is-yes: # Comment   
 	echo $ENV`)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Vars
-	val, ok := file.Vars["ENV"]
-	if !ok {
+	val, err := file.GetVar("ENV")
+	if err != nil {
 		t.Error("ENV was not defined")
 	} else if val != "production" {
 		t.Error("ENV was not production. Was ", val)
-	}
-
-	// Filters
-	if len(file.Filters) == 0 {
-		t.Fatal("A filter should have been defined")
-	}
-	filter := file.Filters[0]
-	if filter.Name != "strict" {
-		t.Error("Filter should be 'strict', got:", filter.Name)
-	}
-	if strings.Join(filter.Script, "\n") != "  set -$1\n  echo $SCRIPT" {
-		t.Errorf("Filter Script is incorrect: %q", strings.Join(filter.Script, "\n"))
 	}
 
 	//Tasks
@@ -48,18 +37,38 @@ task_is-yes: ## Comment
 		t.Errorf("Script was not defined. It was: %q", strings.Join(task.Script, "\n"))
 	}
 
-	if len(task.Filters) == 0 {
-		t.Fatal("task should have a filter")
+}
+
+func TestParser_Dependencies(t *testing.T) {
+	p, err := ParseString(`
+a: # Hola
+  echo hola
+b: a ## Comment   
+  echo b`)
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	taskFilter := task.Filters[0]
-
-	if taskFilter.Name != "strict" {
-		t.Error("Expected strict as taskfilter. Got:", taskFilter.Name)
+	b := &Task{}
+	for _, task := range p.Tasks {
+		if task.Name == "b" {
+			b = task
+		}
 	}
 
-	if len(taskFilter.Args) > 0 && taskFilter.Args[0] != "eux" {
-		t.Error("Expected strict not to be:", taskFilter.Args)
+	if b == nil {
+		t.Fatal("Task not found")
+	}
+
+	if len(b.Deps) != 1 {
+		t.Fatal("Expecting b to have dependencies")
+	}
+	if b.Deps[0] != "a" {
+		t.Error("Expecting b to depend on a. Got", b.Deps)
+	}
+
+	if b.Comment != "Comment" {
+		t.Fatal("expecting b comment. Got", b.Comment)
 	}
 
 }

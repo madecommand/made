@@ -2,82 +2,157 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"log"
 	"strings"
 
 	"os"
-	"os/exec"
 
 	"github.com/fatih/color"
 )
 
-func Run(t *Task) {
-	f, err := os.CreateTemp("", "made")
+func main() {
+	log.SetOutput(os.Stderr)
+	log.SetFlags(log.Lshortfile)
+
+	wd, err := os.Getwd()
 	if err != nil {
-		panic(err)
-	}
-	defer os.Remove(f.Name()) // clean up
-	_, err = f.Write([]byte(strings.Join(t.Script, "\n")))
-	if err != nil {
-		panic(err)
+		log.Fatal("can't get current directory", err)
 	}
 
-	err = f.Close()
+	dir, err := FindProjectDir(wd)
 	if err != nil {
-		panic(err)
+		log.Fatal("No Madefile or .made directory found")
 	}
 
-	cmd := exec.Command("/bin/bash", f.Name())
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Run()
+	p, err := LoadProject(dir)
+	if err != nil {
+		log.Fatal("can't load the project", err)
+	}
+
+	if len(os.Args) <= 1 {
+		printTasks(p, false)
+		return
+	}
+
+	show := false
+	tasks := []*Task{}
+	args := []string{}
+	FOR:
+	for i, arg := range os.Args[1:] {
+		switch arg {
+		case "--":
+			args = os.Args[2+i:]
+			break FOR
+		case "--show", "-s":
+			show = true
+		case "--global", "-g":
+			printTasks(p, true)
+		case "-h", "--help":
+			printHelp()
+			return
+		case "-t", "--tasks":
+			printTasks(p, false)
+			return
+		default:
+			if strings.HasPrefix(arg, "-") {
+				log.Fatalf("option %s not recognized", arg)
+			}
+
+			t, _ := p.FindTask(arg)
+			if t == nil {
+				log.Fatalf("task %q not found", arg)
+			}
+			tasks = append(tasks, t)
+		}
+	}
+
+	if show {
+		script, err := p.BuildScript(tasks)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(script)
+	} else {
+		err = p.Run(tasks, args)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 
 }
 
-func main() {
+func printHelp() {
+	fmt.Println(`made [OPTIONS] task
+	
+OPTIONS:
+	--show -s    Show the generated script
+	--help -h    Show the help
+	--tasks -t   List the current tasks`)
+}
 
-	data, err := ioutil.ReadFile("Madefile")
-	if err != nil {
-		panic("Can't read madefile")
-	}
-	file := ParseString(string(data))
+func printTasks(p *Project, showGlobal bool) {
 
-	if len(os.Args) <= 1 {
-		printHelp(file)
-	}
+	tasksToDisplay := make(map[*File][]*Task)
 
-	for _, arg := range os.Args[1:] {
-		for _, t := range file.Tasks {
-			if t.Name == arg {
-				Run(t)
+	for _, f := range p.Files {
+		for _, t := range f.Tasks {
+			if t.Global == showGlobal {
+				ts, ok := tasksToDisplay[f]
+				if !ok {
+					ts = make([]*Task, 0)
+				}
+				tasksToDisplay[f] = append(ts, t)
 			}
 		}
 	}
 
-}
-
-func printHelp(file *File) {
-	if len(file.Tasks) == 0 {
-		color.Yellow("There are not tasks defined in your Madefile")
+	if len(tasksToDisplay) == 0 {
+		color.Yellow("There are not tasks defined")
+		color.Blue("Create some in Madefile or inside .made/my_tasks.made")
 		return
 	}
 
-	var maxTaskNameSize int
-	for _, t := range file.Tasks {
-		if len(t.Name) > maxTaskNameSize {
-			maxTaskNameSize = len(t.Name)
+	showFilePrefix := showGlobal
+	if len(tasksToDisplay) > 1 {
+		showFilePrefix = true
+	}
+
+	for f, tasks := range tasksToDisplay {
+		if showFilePrefix || showGlobal {
+			if showGlobal {
+				home, err := os.UserHomeDir()
+				if err != nil {
+					color.HiMagenta(f.Path)
+				} else {
+					color.HiMagenta("~/" + f.Path[len(home)+1:])
+				}
+			} else {
+				wd, _ := os.Getwd()
+				color.HiMagenta(f.Path[len(wd)+1:])
+			}
+		}
+		var maxTaskNameSize int
+		for _, t := range tasks {
+			if t.Comment == "" {
+				continue
+			}
+			if len(t.Name) > maxTaskNameSize {
+				maxTaskNameSize = len(t.Name)
+			}
+		}
+		taskColor := color.New(color.Bold, color.FgHiGreen)
+		commentColor := color.New(color.FgBlue)
+
+		for _, t := range tasks {
+			if t.Comment == "" {
+				continue
+			}
+			taskColor.Print(t.Name + " ")
+			for i := 0; i < maxTaskNameSize-len(t.Name); i++ {
+				fmt.Print(" ")
+			}
+			commentColor.Println(t.Comment)
 		}
 	}
 
-	taskColor := color.New(color.Bold, color.FgHiGreen)
-	commentColor := color.New(color.FgBlue)
-
-	for _, task := range file.Tasks {
-		taskColor.Print(task.Name)
-		for i := 0; i < maxTaskNameSize-len(task.Name); i++ {
-			fmt.Print(" ")
-		}
-		commentColor.Println(task.Comment)
-	}
 }

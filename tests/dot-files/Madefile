@@ -1,0 +1,4 @@
+
+
+say_hi:
+    echo "I am Madefile"

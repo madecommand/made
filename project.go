@@ -1,45 +1,88 @@
 package main
 
+import (
+	"fmt"
+	"path"
+	"strings"
+)
+
 type Project struct {
 	Dir   string
 	Files []*File
 }
 
+type Var struct {
+	Key, Value string
+}
+
 type File struct {
-	Name    string
-	Vars    map[string]string
-	Filters []*Filter
-	Tasks   []*Task
-
-	lastTask         *Task
-	lastTaskOrFilter Scripter
+	Path  string
+	Vars  []Var
+	Tasks []*Task
 }
 
-type Scripter interface {
-	AddLineToScript(string)
-}
+func (f *File) GetVar(name string) (string, error) {
+	for _, v := range f.Vars {
+		if v.Key == name {
+			return v.Value, nil
+		}
+	}
+	return "", fmt.Errorf("Var not found")
 
-type Filter struct {
-	Name   string
-	Script []string
-}
-
-func (f *Filter) AddLineToScript(line string) {
-	f.Script = append(f.Script, line)
 }
 
 type Task struct {
+	File    *File
 	Name    string
 	Comment string
 	Script  []string
-	Filters []*TaskFilter
+	Deps    []string
+	Global  bool
 }
 
-func (t *Task) AddLineToScript(line string) {
-	t.Script = append(t.Script, line)
+func (t *Task) ScriptString() string {
+	s := fmt.Sprintf("# %s\n", t.Name)
+	for _, line := range t.Script {
+		if strings.Index(line, "  ") == 0 {
+			s += line[2:] + "\n"
+			continue
+		}
+		if strings.Index(line, "\t") == 0 {
+			s += line[1:] + "\n"
+			continue
+		}
+		s += line + "\n"
+	}
+
+	s += "\n"
+	return s
 }
 
-type TaskFilter struct {
-	Name string
-	Args []string
+func (p *Project) FindTask(name string) (*Task, *File) {
+	var globalTask, madeTask, dotMadeTask *Task
+	for _, f := range p.Files {
+		for _, t := range f.Tasks {
+			if t.Name == name {
+				switch {
+				case path.Base(f.Path) == "Madefile":
+					madeTask = t
+				case t.Global:
+					globalTask = t
+				default:
+					dotMadeTask = t
+				}
+			}
+		}
+	}
+	if madeTask != nil {
+		return madeTask, madeTask.File
+	}
+	if dotMadeTask != nil {
+		return dotMadeTask, dotMadeTask.File
+	}
+	if globalTask != nil {
+		return globalTask, globalTask.File
+	}
+	return nil, nil
+
 }

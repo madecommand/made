@@ -1,14 +1,26 @@
 package main
 
-import "testing"
+import (
+	"fmt"
+	"strings"
+	"testing"
+)
 
 func TestProjectBuild(t *testing.T) {
-	p := &Project{}
-	out, err := p.Build([]string{})
+	p := &Project{
+		Files: []*File{
+			{
+				Tasks: []*Task{
+					{Name: "say_hi"},
+				},
+			},
+		},
+	}
+	out, err := p.BuildScript(p.Files[0].Tasks)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if out != "#!/bin/sh\n" {
+	if out != "#!/bin/sh\n\n# say_hi\n\n" {
 		t.Fatalf("Expecting an empty script. Got %q", out)
 	}
 }
@@ -16,54 +28,94 @@ func TestProjectBuild(t *testing.T) {
 func TestProjectBuild_Task(t *testing.T) {
 	p := &Project{
 		Files: []*File{
-			&File{
-				Name: "madefile",
+			{
+				Path: "madefile",
 				Tasks: []*Task{
-					&Task{Name: "say_hi", Script: []string{"echo hi"}},
+					{Name: "say_hi", Script: []string{"  echo hi", "\thola"}},
 				},
 			},
 		},
 	}
 
-	out, err := p.Build([]string{"say_hi"})
+	out, err := p.BuildScript(p.Files[0].Tasks)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if out != "#!/bin/sh\necho hi\n" {
+	if out != "#!/bin/sh\n\n# say_hi\necho hi\nhola\n\n" {
 		t.Fatalf("Expected out to be different than %q", out)
 	}
 
 }
 
-func TestProjectBuild_Filter(t *testing.T) {
+func testDepResolution(t *testing.T, p *Project, input, output string, shouldError bool) {
+
+	tasks := strings.Fields(input)
+	order := strings.Fields(output)
+
+	name := fmt.Sprintf("(%s) => [%s]", input, output)
+
+	t.Run(name, func(t *testing.T) {
+
+		ts := []*Task{}
+		for _, name := range tasks {
+			task, _ := p.FindTask(name)
+			if task == nil {
+				t.Fatalf("Task %q not found", name)
+			}
+			ts = append(ts, task)
+
+		}
+		sb := &ScriptBuilder{
+			p:     p,
+			tasks: ts,
+		}
+
+		result, err := sb.taskOrder()
+		if shouldError && err == nil {
+			t.Errorf("Expected to have error. But there was none ")
+		}
+		if !shouldError && err != nil {
+			t.Errorf("Got error %s", err)
+
+		}
+
+		// Compare output
+		if len(result) != len(order) {
+			t.Errorf("Got %v", result)
+		} else {
+
+			for i := range result {
+				if result[i] != order[i] {
+					t.Errorf("Got unexpected output: %v", result)
+					break
+				}
+			}
+		}
+	})
+
+}
+
+func TestScriptBuilder_taskOrder(t *testing.T) {
 	p := &Project{
 		Files: []*File{
-			&File{
-				Name: "madefile",
-				Filters: []*Filter{
-					&Filter{Name: "strict", Script: []string{"set -eux"}},
-				},
+			{
+				Path: "madefile",
 				Tasks: []*Task{
-					&Task{
-						Name:   "say_hi",
-						Script: []string{"echo hi"},
-						Filters: []*TaskFilter{
-							&TaskFilter{
-								Name: "strict",
-							},
-						}},
+					{Name: "A", Deps: []string{"B"}},
+					{Name: "B", Deps: []string{"C"}},
+					{Name: "C"},
+					{Name: "D"},
+					{Name: "E", Deps: []string{"D"}},
+					{Name: "F", Deps: []string{"G"}},
+					{Name: "G", Deps: []string{"F"}},
 				},
 			},
 		},
 	}
 
-	out, err := p.Build([]string{"say_hi"})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if out != "" {
-		t.Fatal(out)
-	}
-
+	testDepResolution(t, p, "A", "C B A", false)
+	testDepResolution(t, p, "B", "C B", false)
+	testDepResolution(t, p, "C", "C", false)
+	testDepResolution(t, p, "G", "", true)
 }
