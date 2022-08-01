@@ -37,7 +37,7 @@ func main() {
 	show := false
 	tasks := []*Task{}
 	args := []string{}
-	FOR:
+FOR:
 	for i, arg := range os.Args[1:] {
 		switch arg {
 		case "--":
@@ -45,6 +45,10 @@ func main() {
 			break FOR
 		case "--show", "-s":
 			show = true
+		case "--autocomplete":
+			printAutocomplete()
+			return
+
 		case "--global", "-g":
 			printTasks(p, true)
 		case "-h", "--help":
@@ -79,6 +83,13 @@ func main() {
 		}
 	}
 
+}
+
+func printAutocomplete() {
+	fmt.Println(`
+_made() { COMPREPLY=($(compgen -W "$(made -t | cut -f1 -d' '  | grep -v '.made' | grep -v 'Madefile')" -- "$2")); }
+complete -F _made made
+	`)
 }
 
 func printHelp() {
