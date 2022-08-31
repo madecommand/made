@@ -46,6 +46,7 @@ FOR:
 			break FOR
 		case "--show", "-s":
 			show = true
+
 		case "--autocomplete":
 			printAutocomplete()
 			return
@@ -57,6 +58,9 @@ FOR:
 			if err != nil {
 				log.Println(err)
 			}
+			return
+		case "--version":
+			fmt.Printf("made. Version(v%s) COMMIT: %10s from %s\n", version, commit, date)
 			return
 		case "-h", "--help":
 			printHelp()
