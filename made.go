@@ -54,6 +54,11 @@ FOR:
 		case "--global", "-g":
 			printTasks(p, true)
 		case "--update":
+			if ! strings.HasPrefix(version,"v") {
+				log.Println("--update option is only available in versioned release")
+				log.Println("  current version:", version)
+				return
+			}
 			err = update()
 			if err != nil {
 				log.Println(err)
