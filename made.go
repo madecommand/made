@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"log"
 	"strings"
-
+	"runtime"
 	"os"
 
+	"github.com/creativeprojects/go-selfupdate"
 	"github.com/fatih/color"
 )
 
@@ -45,12 +46,27 @@ FOR:
 			break FOR
 		case "--show", "-s":
 			show = true
+
 		case "--autocomplete":
 			printAutocomplete()
 			return
 
 		case "--global", "-g":
 			printTasks(p, true)
+		case "--update":
+			if ! strings.HasPrefix(version,"v") {
+				log.Println("--update option is only available in versioned release")
+				log.Println("  current version:", version)
+				return
+			}
+			err = update()
+			if err != nil {
+				log.Println(err)
+			}
+			return
+		case "--version":
+			fmt.Printf("made. Version(v%s) COMMIT: %10s from %s\n", version, commit, date)
+			return
 		case "-h", "--help":
 			printHelp()
 			return
@@ -165,5 +181,37 @@ func printTasks(p *Project, showGlobal bool) {
 			commentColor.Println(t.Comment)
 		}
 	}
+
+}
+
+var version string
+var commit string
+var date string
+
+const github_repo = "madecommand/made"
+
+func update() error {
+	latest, found, err := selfupdate.DetectLatest(github_repo)
+	if err != nil {
+		return fmt.Errorf("error occurred while detecting version: %v", err)
+	}
+	if !found {
+		return fmt.Errorf("latest version for %s/%s could not be found from github repository", runtime.GOOS, runtime.GOARCH)
+	}
+
+	if latest.LessOrEqual(version) {
+		log.Printf("Current version (%s) is the latest", version)
+		return nil
+	}
+
+	exe, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("could not locate executable path")
+	}
+	if err := selfupdate.UpdateTo(latest.AssetURL, latest.AssetName, exe); err != nil {
+		return fmt.Errorf("error occurred while updating binary: %v", err)
+	}
+	log.Printf("Successfully updated to version %s", latest.Version())
+	return nil
 
 }
