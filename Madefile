@@ -1,1 +1,22 @@
-../Madefile
+
+install: # Install current version locally
+  
+  COMMIT=$(git rev-parse HEAD)
+  if git diff --quiet ; then
+    COMMIT=$COMMIT-dirty
+  fi
+
+  VERSION=$(git branch --show-current)-$COMMIT
+
+  DATE=$(date --iso-8601=seconds)
+
+  go install  -ldflags="-X 'main.version=$VERSION' -X 'main.commit=$COMMIT' -X 'main.date=$DATE'"
+
+
+list_tags: # List tags
+  git ls-remote --tags origin
+
+delete_tags: # Delete tags
+  for tag in $* ; do
+    git push --delete origin $tag
+  done
