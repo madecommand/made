@@ -2,6 +2,16 @@
 
 Automate all your scripts
 
+## Table of Contents
+
+ * [Why?](#why)
+ * [Welcome to <em>madecommand</em>](#welcome-to-madecommand)
+ * [The Madefile](#the-madefile)
+ * [The command](#the-command)
+ * [Where to put the madefiles](#where-to-put-the-madefiles)
+ * [Install](#install)
+ * [Update](#update)
+
 ## Why?
 
 Even if make is an excellent building tool, I only use it today to run some tasks like start development, deploy, compile, etc., without remembering the peculiarities of each project.
