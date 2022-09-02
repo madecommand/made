@@ -103,7 +103,7 @@ It looks for files called `Madefile` or with `.made` extension, in the directory
 
 ## Install
 
-Visit the (releases page)[http://github.com/madecommand/made/releases/latest] download and unpack the binary in `/usr/local/bin`
+Visit the [releases page](http://github.com/madecommand/made/releases/latest) download and unpack the binary in `/usr/local/bin`
 
 ## Update
 
