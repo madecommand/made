@@ -46,6 +46,9 @@ check_clean:
   
 notify: # Notify in the chat 
 	curl https://somenotificationservice.com/new_deploy
+	
+run: # Run a command in the server
+	ssh dokku $*
 ```
 
 Now let's run it:
@@ -73,6 +76,10 @@ curl https://somenotificationservice.com/new_deploy
 
 $ BRANCH=production made deploy  # Pass variables to made
 ...
+
+$ made run -- help # Pass arguments to the script
+...
+
 
 ```
 
