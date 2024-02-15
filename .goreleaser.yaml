@@ -13,13 +13,6 @@ builds:
       - linux
       - windows
       - darwin
-archives:
-  - replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      386: i386
-      amd64: x86_64
 checksum:
   name_template: 'checksums.txt'
 snapshot:
@@ -30,3 +23,33 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+report_sizes: true
+nfpms:
+  - id: made
+    package_name: made
+    file_name_template: "{{ .ConventionalFileName }}"
+    builds:
+      - made
+    vendor: Madecommand
+    homepage: https://github.com/madecommand/made
+    maintainer: Guillermo Álvarez <guillermo@cientifico.net>
+
+    description: |-
+      made is a command line tool that automates the execution of commands defined in Madefiles and Makefiles, searching for these files in various directories, concatenating their sections, and producing a shell script for execution. It extends the functionality of make by reading not only the Makefile/Madefile in the current directory but also Madefiles in different locations within the system. 
+
+    license: GPL-3.0
+    formats:
+      - deb
+      - rpm
+      - archlinux 
+    dependencies:
+      - zsh
+    provides:
+      - made
+    recommends:
+      - bash
+    bindir: /usr/bin
+
+    priority: extra
+
+

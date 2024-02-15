@@ -1,38 +1,62 @@
-# Made
+# Made - Automate all your scripts
 
-Automate all your scripts
 
-## Table of Contents
+The **made** program is a command line tool that automates the execution of commands defined in Madefiles and Makefiles, searching for these files in various directories, concatenating their sections, and producing a shell script for execution. It extends the functionality of make by reading not only the **Makefile**/**Madefile** in the current directory but also Madefiles in different locations within the system. 
 
- * [Why?](#why)
- * [Welcome to <em>madecommand</em>](#welcome-to-madecommand)
- * [The Madefile](#the-madefile)
- * [The command](#the-command)
- * [Where to put the madefiles](#where-to-put-the-madefiles)
- * [Install](#install)
- * [Update](#update)
+> Even if make is an excellent building tool, I only use it to remember long commands.
+> 
+> _Guillermo Álvarez_ author of the made command
 
-## Why?
+<details open>
+  <summary>Table of Contents</summary>
 
-Even if make is an excellent building tool, I only use it today to run some tasks like start development, deploy, compile, etc., without remembering the peculiarities of each project.
+<!-- vscode-markdown-toc -->
+* [What is made command](#Whatismadecommand)
+* [Why?](#Why)
+* [The `Madefile`](#TheMadefile)
+* [The command](#Thecommand)
+* [Where to put the madefiles](#Wheretoputthemadefiles)
+* [Install](#Install)
+* [Update](#Update)
 
-Whenever I wanted `make` to do more complex scripting, I spent a lot of time because `Makefiles` are not shell scripts, so I needed to relearn how to do it the `make` way.
+<!-- vscode-markdown-toc-config
+	numbering=false
+	autoSave=true
+	/vscode-markdown-toc-config -->
+<!-- /vscode-markdown-toc -->
 
-Why can't `make` concatenate the scripts in a file and run it?
+</details>
 
-## Welcome to *madecommand*
+## Installation
 
-*made* is a command line tool that executes commands defined in `Madefiles`.
+Download the binary for your system from github and place it within your path.
 
-The madefiles are text files that contain shell scripts grouped in tasks similar to a Makefile.
 
-When you run *made* with some targets, *madecommand* will concatenate your targets and their dependencies into a single script and run it.
 
-## The `Madefile`
+## Define scripts everywere
+
+Contrary to `make`, `made` not only reads targets from the Makefile in the current directory.
+
+It reads:
+
+* `Madefile`
+* `madefiles/*.made`
+* `.madefiles/*.made`
+
+And it also loads `Madefiles` from different parts of the system.
+
+* `Current directory`
+* Each directory up until it reaches your HOME or /
+* `~/.config/madefiles`
+* `~/.local/share/madefiles`
+* `/etc/madefiles`
+* `/var/lib/madefiles`
+
+## <a name='TheMadefile'></a>The `Madefile`
 
 A madefile looks like this:
 
-```
+```Make
 # This is a comment
 # And the header of the Madefile
 # Every thing will be appended to the generated script
@@ -69,7 +93,7 @@ $ made staging deploy notify
 ```
 
 
-## The command
+## <a name='Thecommand'></a>The command
 
 ```shell
 $ made # To display all the tasks
@@ -94,21 +118,29 @@ $ made run -- help # Pass arguments to the script
 ```
 
 
-## Where to put the madefiles
+## <a name='Wheretoputthemadefiles'></a>Where to put the madefiles
 
 *madecommand* searches for Madefiles in:
 All directories from current up to HOME.
 
 It looks for files called `Madefile` or with `.made` extension, in the directory or inside a `.made` directory.
 
-## Install
+## <a name='Install'></a>Install
 
 Visit the [releases page](http://github.com/madecommand/made/releases/latest) download and unpack the binary in `/usr/local/bin`
 
-## Update
+## <a name='Update'></a>Update
 
 Just run `made --update`
 
 
 
+
+## <a name='Why'></a>Why?
+
+
+
+Whenever I wanted `make` to do more complex scripting, I spent a lot of time because `Makefiles` are not shell scripts, so I needed to relearn how to do it the `make` way.
+
+Why can't `make` concatenate the scripts in a file and run it?
 
