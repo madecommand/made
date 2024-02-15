@@ -42,8 +42,6 @@ nfpms:
       - deb
       - rpm
       - archlinux 
-    dependencies:
-      - zsh
     provides:
       - made
     recommends:
